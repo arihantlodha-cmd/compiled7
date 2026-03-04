@@ -1,47 +1,46 @@
-import OpenAI from 'openai'
-
 export const dynamic = 'force-dynamic'
 
-const ASK_SYSTEM = `You are a senior PM who asks razor-sharp clarifying questions before writing any document.
-Given raw PM input and the target document type, return exactly 3 questions that, if answered,
-would most improve the quality of the output.
-
-Return ONLY valid JSON: { "questions": ["q1", "q2", "q3"] }
-No commentary. No markdown. Raw JSON only.`
-
-const MODE_LABELS = {
-  prd: 'Product Requirements Document',
-  stories: 'User Stories',
-  stakeholder: 'Stakeholder Update',
-  roadmap: 'Quarterly Roadmap',
-}
-
 export async function POST(request) {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  const { input, mode } = await request.json()
-
-  if (!input?.trim()) {
-    return new Response(JSON.stringify({ error: 'Input is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
-
   try {
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o',
-      max_tokens: 512,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: ASK_SYSTEM },
-        {
-          role: 'user',
-          content: `Target document type: ${MODE_LABELS[mode] || mode}\n\nRaw PM input:\n${input}`,
-        },
-      ],
+    const { input, mode } = await request.json()
+
+    const modeLabels = {
+      prd: 'Product Requirements Document',
+      stories: 'User Stories',
+      stakeholder: 'Stakeholder Update',
+      roadmap: 'Quarterly Roadmap',
+    }
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 512,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: `You are a senior PM who asks razor-sharp clarifying questions before writing any document.
+Return ONLY valid JSON: { "questions": ["q1", "q2", "q3"] }`,
+          },
+          {
+            role: 'user',
+            content: `Document type: ${modeLabels[mode] || mode}\n\n${input}`,
+          },
+        ],
+      }),
     })
 
-    const parsed = JSON.parse(response.choices[0].message.content)
+    if (!openaiRes.ok) {
+      throw new Error(`OpenAI ${openaiRes.status}`)
+    }
+
+    const data = await openaiRes.json()
+    const parsed = JSON.parse(data.choices[0].message.content)
     return new Response(JSON.stringify(parsed), {
       headers: { 'Content-Type': 'application/json' },
     })

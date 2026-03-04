@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 const ASK_SYSTEM = `You are a senior PM who asks razor-sharp clarifying questions before writing any document.
 Given raw PM input and the target document type, return exactly 3 questions that, if answered,

@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 const SCORE_SYSTEM = `You are a senior PM reviewer grading PM artifacts.
 Given a PM artifact and its type, return a quality score and feedback.

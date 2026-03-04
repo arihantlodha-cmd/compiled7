@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 const REFINE_SYSTEM = `You are a senior PM editor. You will receive an existing PM artifact and a refinement instruction.
 Preserve the overall structure and format. Apply ONLY the requested changes.

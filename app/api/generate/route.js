@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 export async function POST(request) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })

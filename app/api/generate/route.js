@@ -2,11 +2,8 @@ import OpenAI from 'openai'
 
 export const runtime = 'edge'
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 export async function POST(request) {
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const { input, mode, systemPrompt } = await request.json()
 
   if (!input?.trim()) {

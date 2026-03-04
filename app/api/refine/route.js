@@ -2,15 +2,12 @@ import OpenAI from 'openai'
 
 export const runtime = 'edge'
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 const REFINE_SYSTEM = `You are a senior PM editor. You will receive an existing PM artifact and a refinement instruction.
 Preserve the overall structure and format. Apply ONLY the requested changes.
 Return the complete, revised artifact. No commentary, just the artifact.`
 
 export async function POST(request) {
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const { original, instruction } = await request.json()
 
   if (!original?.trim() || !instruction?.trim()) {

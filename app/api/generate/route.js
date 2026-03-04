@@ -1,9 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
 export const runtime = 'edge'
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 })
 
 export async function POST(request) {
@@ -21,33 +21,31 @@ export async function POST(request) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const anthropicStream = client.messages.stream({
-          model: 'claude-opus-4-5',
+        const openaiStream = await client.chat.completions.create({
+          model: 'gpt-4o',
           max_tokens: 4096,
-          system: systemPrompt,
+          stream: true,
           messages: [
-            {
-              role: 'user',
-              content: input,
-            },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: input },
           ],
         })
 
-        for await (const event of anthropicStream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta?.type === 'text_delta'
-          ) {
-            const chunk = `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
-            controller.enqueue(encoder.encode(chunk))
+        for await (const chunk of openaiStream) {
+          const text = chunk.choices[0]?.delta?.content || ''
+          if (text) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
+            )
           }
         }
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'))
         controller.close()
       } catch (err) {
-        const errChunk = `data: ${JSON.stringify({ error: err.message })}\n\n`
-        controller.enqueue(encoder.encode(errChunk))
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ error: err.message })}\n\n`)
+        )
         controller.close()
       }
     },

@@ -1,8 +1,6 @@
 import OpenAI from 'openai'
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+export const runtime = 'edge'
 
 const ASK_SYSTEM = `You are a senior PM who asks razor-sharp clarifying questions before writing any document.
 Given raw PM input and the target document type, return exactly 3 questions that, if answered,
@@ -19,6 +17,7 @@ const MODE_LABELS = {
 }
 
 export async function POST(request) {
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const { input, mode } = await request.json()
 
   if (!input?.trim()) {

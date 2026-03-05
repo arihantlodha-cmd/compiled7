@@ -168,6 +168,30 @@ function Stat({ number, label }) {
   )
 }
 
+function LiveCounter() {
+  const BASE = 3847
+  const [count, setCount] = useState(BASE)
+  const [ref, inView] = useInView()
+
+  useEffect(() => {
+    if (!inView) return
+    // Tick up slowly to simulate live usage
+    const interval = setInterval(() => {
+      setCount(c => c + Math.floor(Math.random() * 3))
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [inView])
+
+  return (
+    <div ref={ref} className="text-center">
+      <div className="font-display text-4xl md:text-5xl mb-1" style={{ color: '#e8520a' }}>
+        {count.toLocaleString()}
+      </div>
+      <div className="text-muted text-sm font-body">artifacts generated worldwide</div>
+    </div>
+  )
+}
+
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
 
 export default function Landing() {
@@ -274,11 +298,12 @@ export default function Landing() {
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto">
           <FadeUp>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
               <Stat number="50M+" label="Product managers globally" />
               <Stat number="60%" label="Time lost to documentation" />
               <Stat number="3 hrs" label="Average PRD write time" />
               <Stat number="30 sec" label="With Pilot" />
+              <LiveCounter />
             </div>
           </FadeUp>
         </div>

@@ -6,7 +6,7 @@ import {
   Zap, FileText, Users, Map, CheckSquare,
   ChevronRight, Copy, Download, Clock, Trash2, X,
   Plus, MessageCircle, ArrowRight, History, Check,
-  LayoutGrid, Target, Trophy, Sparkles, Home, Share2, Settings, Send,
+  LayoutGrid, Target, Trophy, Sparkles, Home, Share2, Settings, Send, Columns,
 } from 'lucide-react'
 
 // ─── MODES ─────────────────────────────────────────────────────────────────
@@ -613,6 +613,12 @@ function ScoreCard({ score, color }) {
     score.score >= 80 ? 'Strong' :
     score.score >= 65 ? 'Solid' : 'Needs work'
 
+  // Percentile: rough curve — 80+ = top 15%, 70+ = top 35%, 60+ = top 55%
+  const percentile = score.score >= 85 ? Math.floor(90 + (score.score - 85) * 2)
+    : score.score >= 75 ? Math.floor(70 + (score.score - 75) * 2)
+    : score.score >= 65 ? Math.floor(45 + (score.score - 65) * 2.5)
+    : Math.floor(score.score * 0.6)
+
   return (
     <div className="px-5 py-3 border-t border-border animate-slide-up flex-shrink-0">
       <div className="flex items-center gap-3">
@@ -622,6 +628,7 @@ function ScoreCard({ score, color }) {
             {displayed}
           </span>
           <span className="text-muted text-[9px] font-body uppercase tracking-wide">/ 100</span>
+          <span className="text-[9px] font-body font-medium mt-0.5" style={{ color: scoreColor }}>top {100 - Math.min(percentile, 99)}%</span>
         </div>
 
         {/* Bar + labels */}
@@ -851,6 +858,9 @@ export default function PilotApp() {
   // Welcome modal
   const [showWelcome, setShowWelcome] = useState(false)
 
+  // Before/After view
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false)
+
   // PM Score
   const [score, setScore] = useState(null)
   const [isScoring, setIsScoring] = useState(false)
@@ -960,6 +970,7 @@ export default function PilotApp() {
     setIsGenerating(true)
     setRefineInput('')
     setRefineThread([])
+    setShowBeforeAfter(false)
     genStartRef.current = Date.now()
 
     let fullOutput = ''
@@ -1455,6 +1466,16 @@ export default function PilotApp() {
                   </span>
                 )}
               </div>
+              {output && !isGenerating && (
+                <button
+                  onClick={() => setShowBeforeAfter(p => !p)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-body transition-all duration-150 ${showBeforeAfter ? 'border-accent/40 text-accent bg-accent/10' : 'border-border text-muted hover:text-paper hover:border-paper/20'}`}
+                  title="Before / After view"
+                >
+                  <Columns size={11} />
+                  {showBeforeAfter ? 'Output' : 'Before / After'}
+                </button>
+              )}
               {output && (
                 <div className="flex items-center gap-1.5">
                   <button onClick={handleShare}
@@ -1494,8 +1515,32 @@ export default function PilotApp() {
             </div>
 
             {/* Output content */}
-            <div ref={outputRef} className="flex-1 overflow-y-auto px-5 py-4">
-              {!output && !isGenerating && (
+            <div ref={outputRef} className={`flex-1 overflow-hidden ${showBeforeAfter && output ? 'flex' : 'overflow-y-auto px-5 py-4'}`}>
+              {/* Before/After split view */}
+              {showBeforeAfter && output && (
+                <div className="flex flex-1 divide-x divide-border overflow-hidden w-full">
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-4 py-2 border-b border-border flex-shrink-0">
+                      <span className="text-[10px] uppercase tracking-widest font-body text-red-400/70">Before — Raw input</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-4 py-4">
+                      <p className="text-muted/60 text-xs font-body leading-relaxed whitespace-pre-wrap">
+                        {docs[0]?.content || ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-4 py-2 border-b border-border flex-shrink-0">
+                      <span className="text-[10px] uppercase tracking-widest font-body" style={{ color: activeMode.color }}>After — {activeMode.label}</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-4 py-4">
+                      <OutputRenderer content={output} color={activeMode.color} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!showBeforeAfter && !output && !isGenerating && (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
                     style={{ background: activeMode.color + '20' }}>
@@ -1521,7 +1566,7 @@ export default function PilotApp() {
                   </div>
                 </div>
               )}
-              {(output || isGenerating) && (
+              {!showBeforeAfter && (output || isGenerating) && (
                 <div className="animate-fade-up">
                   {output.startsWith('__error__') ? (
                     <div className="rounded-xl border border-red-500/20 bg-red-500/05 p-5">

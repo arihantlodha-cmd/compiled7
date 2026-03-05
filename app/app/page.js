@@ -46,6 +46,87 @@ const MODES = [
   },
 ]
 
+// ─── TEMPLATES ────────────────────────────────────────────────────────────
+
+const TEMPLATES = [
+  {
+    label: 'Product Launch',
+    mode: 'prd',
+    icon: '🚀',
+    input: `Launching a public API for our SaaS product. Enterprise customers have been asking for 6 months. We have 12 enterprise customers, 3 deals closing in May that require it.
+
+Team: 3 engineers, 1 designer (shared). Timeline: must ship by May 1st.
+Current auth is session-based, need to add API keys, rate limiting, and a developer dashboard. Docs need to be written from scratch.
+Risk: two engineers are partially on infra work. Design is bottlenecked.`,
+  },
+  {
+    label: 'Churn Fix',
+    mode: 'prd',
+    icon: '📉',
+    input: `Monthly churn is at 8%, leadership wants it at 5% by end of Q2. Exit surveys show top 3 reasons: missing integrations (42%), too expensive (31%), hard to use (27%).
+
+We can't lower price. Integrations team is building Salesforce + HubSpot connectors (ETA: 6 weeks). The "hard to use" bucket is vague — users drop off at the reporting section.
+
+Hypothesis: redesign the reporting UX and add a guided tour for new users. We have Mixpanel data showing exactly where people get stuck.`,
+  },
+  {
+    label: 'Sprint Review',
+    mode: 'stakeholder',
+    icon: '📋',
+    input: `Sprint 22 complete.
+
+Shipped: New dashboard (finally), fixed the CSV export bug that's been open 3 months, updated onboarding flow step 1-3.
+
+Metrics: Dashboard adoption 34% in first week. CSV bug affected ~200 users/week — now resolved. Onboarding completion up from 41% to 58%.
+
+Slipped: Mobile push notifications pushed to Sprint 23. Underestimated Firebase setup complexity.
+
+Team: Full team available. No blockers this sprint.
+
+Next sprint: Mobile push, API rate limiting, and starting the billing redesign.`,
+  },
+  {
+    label: 'Feature Breakdown',
+    mode: 'stories',
+    icon: '🎯',
+    input: `Build a saved searches feature. Users should be able to save any search query with a custom name, see their saved searches in a sidebar, run them with one click, and delete ones they don't need.
+
+Edge cases: search query might become invalid if filters change, saved searches should sync across devices, users on free plan limited to 5 saved searches, pro users unlimited.
+
+This is part of the Q3 power user initiative. Engineering estimate: 2 sprints. Design has mocks ready.`,
+  },
+  {
+    label: 'Q3 Roadmap',
+    mode: 'roadmap',
+    icon: '🗺️',
+    input: `Q3 planning. Team: 5 engineers, 1 designer, 1 PM (me).
+
+Leadership goals:
+- Hit $2M ARR (currently $1.4M)
+- Launch mobile app
+- Reduce support tickets by 30%
+
+What we know:
+- Mobile app is 60% built, needs 6 weeks to finish
+- Support tickets mostly about billing confusion and CSV exports
+- 3 enterprise deals pending that need SSO
+
+Constraints: One engineer leaving end of July (planned). Designer is at capacity. Can't hire until Q4.`,
+  },
+  {
+    label: 'Post-Mortem',
+    mode: 'stakeholder',
+    icon: '🔥',
+    input: `Production incident last Tuesday. Database went down for 2.5 hours, 100% of users affected. Revenue impact: ~$40k in refund requests.
+
+Root cause: migration script ran without a transaction wrapper, left DB in inconsistent state. The deploy was approved by 2 engineers but neither caught it in review.
+
+Immediate fix: rolled back migration, added transaction wrappers, deployed hotfix in 4 hours.
+
+Process gaps: no staging environment that mirrors production, no automated migration tests, code review checklist didn't cover DB migrations specifically.`,
+  },
+]
+
 // ─── EXAMPLES ─────────────────────────────────────────────────────────────
 
 const EXAMPLES = {
@@ -240,6 +321,50 @@ This is the most important section. 4–6 items you could do but won't, each wit
 - [Date]: [Quarter close — what success looks like]
 
 Be opinionated. Surface tradeoffs. Don't hedge. The roadmap is a strategy document, not a feature list.`
+}
+
+// ─── TEMPLATE GALLERY ────────────────────────────────────────────────────────
+
+function TemplateGallery({ onSelect, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+      onClick={onClose}>
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-2xl animate-fade-up"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div>
+            <h2 className="font-display text-lg text-paper">Templates</h2>
+            <p className="text-muted text-xs font-body">Click any template to load it instantly</p>
+          </div>
+          <button onClick={onClose} className="text-muted hover:text-paper transition-colors duration-150">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="p-4 grid grid-cols-2 gap-2 max-h-[70vh] overflow-y-auto">
+          {TEMPLATES.map((t) => (
+            <button
+              key={t.label}
+              onClick={() => onSelect(t)}
+              className="text-left p-4 rounded-xl border border-border bg-ink/40 hover:bg-surface hover:border-paper/20 transition-all duration-150 group"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{t.icon}</span>
+                <span className="text-paper/90 text-sm font-body font-medium group-hover:text-paper transition-colors">{t.label}</span>
+                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded font-body font-medium"
+                  style={{
+                    background: MODES.find(m => m.id === t.mode)?.color + '20',
+                    color: MODES.find(m => m.id === t.mode)?.color,
+                  }}>
+                  {MODES.find(m => m.id === t.mode)?.label}
+                </span>
+              </div>
+              <p className="text-muted text-[11px] font-body leading-relaxed line-clamp-2">{t.input.slice(0, 100)}...</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── OUTPUT RENDERER ────────────────────────────────────────────────────────
@@ -567,6 +692,9 @@ export default function PilotApp() {
   // Shortcuts modal
   const [showShortcuts, setShowShortcuts] = useState(false)
 
+  // Template gallery
+  const [showTemplates, setShowTemplates] = useState(false)
+
   // PM Score
   const [score, setScore] = useState(null)
   const [isScoring, setIsScoring] = useState(false)
@@ -608,7 +736,7 @@ export default function PilotApp() {
       const cmd = navigator.platform.toUpperCase().includes('MAC') ? e.metaKey : e.ctrlKey
       if (e.key === 'Escape') {
         setShowHistory(false); setShowShortcuts(false)
-        setShowExport(false); setShowRefine(false); setShowBlitz(false)
+        setShowExport(false); setShowRefine(false); setShowBlitz(false); setShowTemplates(false)
         return
       }
       if (!cmd) return
@@ -650,6 +778,17 @@ export default function PilotApp() {
     updateDoc(docs[0].id, 'content', EXAMPLES[activeMode.id])
     setScore(null)
     setOutput('')
+  }
+
+  function loadTemplate(template) {
+    const mode = MODES.find(m => m.id === template.mode) || MODES[0]
+    setActiveMode(mode)
+    setDocs([{ id: 1, label: 'Primary Input', content: template.input }])
+    setOutput('')
+    setScore(null)
+    setQuestions(null)
+    setAnswers({})
+    setShowTemplates(false)
   }
 
   // ── GENERATE ─────────────────────────────────────────────────────────────
@@ -972,13 +1111,22 @@ export default function PilotApp() {
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-border flex-shrink-0">
               <span className="text-muted text-xs font-body uppercase tracking-widest">Raw Input</span>
               <div className="flex items-center gap-1.5">
+                {/* Templates */}
+                <button
+                  onClick={() => setShowTemplates(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-body font-medium transition-all duration-150"
+                  style={{ borderColor: 'rgba(232,82,10,0.4)', color: '#e8520a', background: 'rgba(232,82,10,0.08)' }}
+                  title="Browse templates"
+                >
+                  <Sparkles size={10} />
+                  Templates
+                </button>
                 {/* Load example */}
                 <button
                   onClick={loadExample}
                   className="flex items-center gap-1 px-2 py-1 rounded-md border border-border text-muted text-xs font-body hover:text-paper hover:border-paper/20 transition-all duration-150"
                   title="Load a realistic example"
                 >
-                  <Sparkles size={10} />
                   Example
                 </button>
                 {/* Add context */}
@@ -1311,6 +1459,11 @@ export default function PilotApp() {
           </div>
         )}
       </div>
+
+      {/* TEMPLATE GALLERY */}
+      {showTemplates && (
+        <TemplateGallery onSelect={loadTemplate} onClose={() => setShowTemplates(false)} />
+      )}
 
       {/* BLITZ MODAL */}
       {showBlitz && (

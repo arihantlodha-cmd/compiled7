@@ -323,6 +323,72 @@ This is the most important section. 4–6 items you could do but won't, each wit
 Be opinionated. Surface tradeoffs. Don't hedge. The roadmap is a strategy document, not a feature list.`
 }
 
+// ─── WELCOME MODAL ───────────────────────────────────────────────────────────
+
+function WelcomeModal({ onDismiss }) {
+  const steps = [
+    {
+      icon: '📋',
+      title: 'Paste your raw notes',
+      body: 'Meeting dumps, Slack threads, bullet points — anything messy. The more context, the better.',
+    },
+    {
+      icon: '⚡',
+      title: 'Pick a mode & Generate',
+      body: 'Choose PRD, User Stories, Stakeholder Update, or Roadmap — then hit Generate.',
+    },
+    {
+      icon: '✏️',
+      title: 'Refine until it\'s perfect',
+      body: 'Type "make it shorter" or "add a risks section" in the chat below the output.',
+    },
+  ]
+
+  return (
+    <div className="fixed inset-0 bg-ink/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-md animate-fade-up">
+        {/* Header */}
+        <div className="px-7 pt-7 pb-5 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-4">
+            <Zap size={22} className="text-white" />
+          </div>
+          <h2 className="font-display text-2xl text-paper mb-2">Welcome to Pilot</h2>
+          <p className="text-muted text-sm font-body">Turn raw PM chaos into polished artifacts in 30 seconds.</p>
+        </div>
+
+        {/* Steps */}
+        <div className="px-7 pb-6 space-y-4">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-start gap-4">
+              <div className="w-9 h-9 rounded-xl bg-ink border border-border flex items-center justify-center flex-shrink-0 text-base">
+                {s.icon}
+              </div>
+              <div>
+                <p className="text-paper text-sm font-body font-medium mb-0.5">{s.title}</p>
+                <p className="text-muted text-xs font-body leading-relaxed">{s.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="px-7 pb-7">
+          <button
+            onClick={onDismiss}
+            className="w-full py-3 rounded-xl text-white font-medium font-body text-sm hover:opacity-90 transition-all duration-150 glow-accent"
+            style={{ background: '#e8520a' }}
+          >
+            Got it — let's go →
+          </button>
+          <p className="text-muted/50 text-[11px] font-body text-center mt-3">
+            An example is already loaded. Just hit Generate.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── PRODUCT CONTEXT ─────────────────────────────────────────────────────────
 
 const CONTEXT_KEY = 'pilot_product_context'
@@ -782,6 +848,9 @@ export default function PilotApp() {
   // Product context
   const [showContext, setShowContext] = useState(false)
 
+  // Welcome modal
+  const [showWelcome, setShowWelcome] = useState(false)
+
   // PM Score
   const [score, setScore] = useState(null)
   const [isScoring, setIsScoring] = useState(false)
@@ -800,11 +869,10 @@ export default function PilotApp() {
 
   useEffect(() => {
     setHistory(loadHistory())
-    // Auto-load example on first visit
     const seen = localStorage.getItem('pilot_seen')
     if (!seen) {
       setDocs([{ id: 1, label: 'Primary Input', content: EXAMPLES['prd'] }])
-      localStorage.setItem('pilot_seen', '1')
+      setShowWelcome(true)
     }
   }, [])
 
@@ -1599,6 +1667,11 @@ export default function PilotApp() {
           </div>
         )}
       </div>
+
+      {/* WELCOME MODAL */}
+      {showWelcome && (
+        <WelcomeModal onDismiss={() => { setShowWelcome(false); localStorage.setItem('pilot_seen', '1') }} />
+      )}
 
       {/* PRODUCT CONTEXT */}
       {showContext && (

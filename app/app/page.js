@@ -6,7 +6,7 @@ import {
   Zap, FileText, Users, Map, CheckSquare,
   ChevronRight, Copy, Download, Clock, Trash2, X,
   Plus, MessageCircle, ArrowRight, History, Check,
-  LayoutGrid, Target, Trophy, Sparkles, Home, Share2,
+  LayoutGrid, Target, Trophy, Sparkles, Home, Share2, Settings, Send,
 } from 'lucide-react'
 
 // ─── MODES ─────────────────────────────────────────────────────────────────
@@ -321,6 +321,88 @@ This is the most important section. 4–6 items you could do but won't, each wit
 - [Date]: [Quarter close — what success looks like]
 
 Be opinionated. Surface tradeoffs. Don't hedge. The roadmap is a strategy document, not a feature list.`
+}
+
+// ─── PRODUCT CONTEXT ─────────────────────────────────────────────────────────
+
+const CONTEXT_KEY = 'pilot_product_context'
+
+function loadContext() {
+  if (typeof window === 'undefined') return {}
+  try { return JSON.parse(localStorage.getItem(CONTEXT_KEY) || '{}') }
+  catch { return {} }
+}
+
+function buildContextString(ctx) {
+  if (!ctx || !Object.values(ctx).some(v => v?.trim())) return ''
+  const parts = []
+  if (ctx.product?.trim()) parts.push(`Product: ${ctx.product.trim()}`)
+  if (ctx.users?.trim()) parts.push(`Target users: ${ctx.users.trim()}`)
+  if (ctx.team?.trim()) parts.push(`Team: ${ctx.team.trim()}`)
+  if (ctx.stack?.trim()) parts.push(`Tech stack: ${ctx.stack.trim()}`)
+  if (ctx.extra?.trim()) parts.push(ctx.extra.trim())
+  if (!parts.length) return ''
+  return `[Product Context — always use this when generating]\n${parts.join('\n')}\n\n`
+}
+
+function ProductContextPanel({ onClose }) {
+  const [ctx, setCtx] = useState(loadContext)
+  const [saved, setSaved] = useState(false)
+
+  function save() {
+    localStorage.setItem(CONTEXT_KEY, JSON.stringify(ctx))
+    setSaved(true)
+    setTimeout(() => { setSaved(false); onClose() }, 800)
+  }
+
+  const fields = [
+    { key: 'product', label: 'Product name & what it does', placeholder: 'e.g. Acme — B2B invoicing SaaS for freelancers' },
+    { key: 'users', label: 'Target users', placeholder: 'e.g. Freelance designers and developers, 1-10 person teams' },
+    { key: 'team', label: 'Your team', placeholder: 'e.g. 4 engineers, 1 designer, 2 PMs, seed stage' },
+    { key: 'stack', label: 'Tech stack', placeholder: 'e.g. React, Node.js, PostgreSQL, AWS' },
+    { key: 'extra', label: 'Anything else Pilot should always know', placeholder: 'e.g. We follow the Shape Up method. No sprints.' },
+  ]
+
+  return (
+    <div className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+      onClick={onClose}>
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-lg animate-fade-up"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div>
+            <h2 className="font-display text-lg text-paper">Product Context</h2>
+            <p className="text-muted text-xs font-body">Tell Pilot about your product once — it remembers forever</p>
+          </div>
+          <button onClick={onClose} className="text-muted hover:text-paper transition-colors duration-150"><X size={16} /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          {fields.map(f => (
+            <div key={f.key}>
+              <label className="text-muted text-[11px] font-body uppercase tracking-widest mb-1.5 block">{f.label}</label>
+              <textarea
+                value={ctx[f.key] || ''}
+                onChange={e => setCtx(prev => ({ ...prev, [f.key]: e.target.value }))}
+                placeholder={f.placeholder}
+                rows={f.key === 'extra' ? 2 : 1}
+                className="w-full bg-ink border border-border rounded-lg px-3 py-2 text-xs text-paper/80 placeholder-muted/30 outline-none focus:border-paper/20 font-body resize-none transition-colors duration-150"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="px-6 pb-5 flex items-center justify-between">
+          <button onClick={() => { setCtx({}); localStorage.removeItem(CONTEXT_KEY) }}
+            className="text-muted text-xs font-body hover:text-red-400 transition-colors duration-150">
+            Clear context
+          </button>
+          <button onClick={save}
+            className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium font-body transition-all duration-150"
+            style={{ background: '#e8520a' }}>
+            {saved ? <><Check size={13} /> Saved!</> : 'Save context'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── TEMPLATE GALLERY ────────────────────────────────────────────────────────
@@ -676,10 +758,11 @@ export default function PilotApp() {
   const [copied, setCopied] = useState(false)
   const [shared, setShared] = useState(false)
 
-  // Refine
-  const [showRefine, setShowRefine] = useState(false)
+  // Refine chat
   const [refineInput, setRefineInput] = useState('')
   const [isRefining, setIsRefining] = useState(false)
+  const [refineThread, setRefineThread] = useState([]) // [{role, text}]
+  const refineEndRef = useRef(null)
 
   // Smart Ask
   const [questions, setQuestions] = useState(null)
@@ -695,6 +778,9 @@ export default function PilotApp() {
 
   // Template gallery
   const [showTemplates, setShowTemplates] = useState(false)
+
+  // Product context
+  const [showContext, setShowContext] = useState(false)
 
   // PM Score
   const [score, setScore] = useState(null)
@@ -737,7 +823,7 @@ export default function PilotApp() {
       const cmd = navigator.platform.toUpperCase().includes('MAC') ? e.metaKey : e.ctrlKey
       if (e.key === 'Escape') {
         setShowHistory(false); setShowShortcuts(false)
-        setShowExport(false); setShowRefine(false); setShowBlitz(false); setShowTemplates(false)
+        setShowExport(false); setShowRefine(false); setShowBlitz(false); setShowTemplates(false); setShowContext(false)
         return
       }
       if (!cmd) return
@@ -759,7 +845,9 @@ export default function PilotApp() {
   // ── HELPERS ──────────────────────────────────────────────────────────────
 
   function buildCombinedInput() {
-    let combined = ''
+    const ctx = loadContext()
+    const ctxString = buildContextString(ctx)
+    let combined = ctxString
     docs.forEach((doc, idx) => {
       if (!doc.content.trim()) return
       combined += idx === 0
@@ -802,8 +890,8 @@ export default function PilotApp() {
     setScore(null)
     setGenTime(null)
     setIsGenerating(true)
-    setShowRefine(false)
     setRefineInput('')
+    setRefineThread([])
     genStartRef.current = Date.now()
 
     let fullOutput = ''
@@ -858,6 +946,9 @@ export default function PilotApp() {
 
   async function handleRefine() {
     if (!refineInput.trim() || isRefining || !output) return
+    const instruction = refineInput.trim()
+    setRefineThread(prev => [...prev, { role: 'user', text: instruction }])
+    setRefineInput('')
     setIsRefining(true)
     setScore(null)
     let refined = ''
@@ -865,7 +956,7 @@ export default function PilotApp() {
       const res = await fetch('/api/refine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ original: output, instruction: refineInput, mode: activeMode.id }),
+        body: JSON.stringify({ original: output, instruction, mode: activeMode.id }),
       })
       if (!res.ok) throw new Error(`Refinement failed: ${res.statusText}`)
 
@@ -883,6 +974,8 @@ export default function PilotApp() {
         }
       }
 
+      setRefineThread(prev => [...prev, { role: 'assistant', text: `Updated — ${refined.split(/\s+/).length} words` }])
+
       const item = {
         id: Date.now(), mode: activeMode.label, modeId: activeMode.id,
         input: buildCombinedInput().slice(0, 120), fullInput: buildCombinedInput(), output: refined,
@@ -890,11 +983,11 @@ export default function PilotApp() {
       }
       const updated = [item, ...history].slice(0, MAX_HISTORY)
       setHistory(updated); saveHistory(updated)
-      setRefineInput(''); setShowRefine(false)
 
       scoreOutput(refined, activeMode.id)
+      setTimeout(() => refineEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     } catch (err) {
-      setOutput(`**Refinement failed**\n\n${err.message}`)
+      setRefineThread(prev => [...prev, { role: 'assistant', text: `Error: ${err.message}` }])
     } finally { setIsRefining(false) }
   }
 
@@ -965,6 +1058,16 @@ export default function PilotApp() {
     navigator.clipboard.writeText(output)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleNotionCopy() {
+    // Notion pastes markdown directly — just copy with a clean format
+    const title = output.split('\n')[0].replace(/^#+\s*/, '')
+    const body = output.split('\n').slice(1).join('\n').trim()
+    const notionReady = `${title}\n\n${body}`
+    navigator.clipboard.writeText(notionReady)
+    setShared('notion')
+    setTimeout(() => setShared(false), 2000)
   }
 
   function handleShare() {
@@ -1045,6 +1148,13 @@ export default function PilotApp() {
           <span className="text-muted text-xs ml-1 font-body">AI Copilot for PMs</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowContext(true)}
+            className="w-7 h-7 rounded-lg border border-border text-muted hover:text-paper hover:border-paper/20 transition-all duration-150 flex items-center justify-center"
+            title="Product context"
+          >
+            <Settings size={13} />
+          </button>
           <Link
             href="/"
             className="w-7 h-7 rounded-lg border border-border text-muted hover:text-paper hover:border-paper/20 transition-all duration-150 flex items-center justify-center"
@@ -1300,6 +1410,10 @@ export default function PilotApp() {
                           className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted hover:text-paper hover:bg-white/5 transition-all duration-150 font-body">
                           <Copy size={12} />Copy as Markdown
                         </button>
+                        <button onClick={handleNotionCopy}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted hover:text-paper hover:bg-white/5 transition-all duration-150 font-body">
+                          <Copy size={12} />{shared === 'notion' ? 'Copied for Notion!' : 'Copy for Notion'}
+                        </button>
                         <button onClick={handleDownloadMd}
                           className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted hover:text-paper hover:bg-white/5 transition-all duration-150 font-body">
                           <Download size={12} />Download as .md file
@@ -1370,44 +1484,55 @@ export default function PilotApp() {
               <ScoreCard score={score} color={activeMode.color} />
             )}
 
-            {/* Refine bar */}
+            {/* Refine chat */}
             {output && !isGenerating && (
-              <div className="border-t border-border flex-shrink-0">
-                {!showRefine ? (
-                  <div className="px-4 py-2.5">
-                    <button onClick={() => setShowRefine(true)}
-                      className="flex items-center gap-1.5 text-muted text-xs font-body hover:text-paper transition-colors duration-150">
-                      <ChevronRight size={13} />
-                      Refine this output...
-                    </button>
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 animate-slide-up">
-                    <div className="flex items-center gap-2">
-                      <input type="text" autoFocus
-                        value={refineInput}
-                        onChange={e => setRefineInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && !e.shiftKey) handleRefine()
-                          if (e.key === 'Escape') { setShowRefine(false); setRefineInput('') }
-                        }}
-                        placeholder="What should change? e.g. 'Make it shorter', 'Add a risks section'..."
-                        className="flex-1 bg-surface border border-border rounded-lg px-3 py-2 text-xs text-paper/80 placeholder-muted/40 outline-none focus:border-paper/20 font-body transition-colors duration-150" />
-                      <button onClick={handleRefine}
-                        disabled={isRefining || !refineInput.trim()}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                        style={{ background: activeMode.color }}>
-                        {isRefining
-                          ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
-                          : <ArrowRight size={13} className="text-white" />}
-                      </button>
-                      <button onClick={() => { setShowRefine(false); setRefineInput('') }}
-                        className="text-muted hover:text-paper transition-colors duration-150">
-                        <X size={14} />
-                      </button>
-                    </div>
+              <div className="border-t border-border flex-shrink-0" style={{ maxHeight: '220px', display: 'flex', flexDirection: 'column' }}>
+                {/* Thread */}
+                {refineThread.length > 0 && (
+                  <div className="overflow-y-auto px-4 py-2 space-y-1.5 flex-1">
+                    {refineThread.map((msg, i) => (
+                      <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`text-[11px] font-body px-3 py-1.5 rounded-xl max-w-[80%] ${
+                          msg.role === 'user'
+                            ? 'text-white rounded-br-sm'
+                            : 'bg-surface text-muted rounded-bl-sm'
+                        }`}
+                          style={msg.role === 'user' ? { background: activeMode.color } : {}}>
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                    {isRefining && (
+                      <div className="flex justify-start">
+                        <div className="bg-surface text-muted text-[11px] font-body px-3 py-1.5 rounded-xl rounded-bl-sm flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 border border-muted/40 border-t-muted rounded-full animate-spin" />
+                          Refining...
+                        </div>
+                      </div>
+                    )}
+                    <div ref={refineEndRef} />
                   </div>
                 )}
+                {/* Input */}
+                <div className="px-3 py-2.5 flex items-center gap-2 border-t border-border/50">
+                  <input
+                    value={refineInput}
+                    onChange={e => setRefineInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) handleRefine() }}
+                    placeholder="Refine... e.g. 'Make it shorter', 'Add a risks section'"
+                    className="flex-1 bg-transparent text-xs text-paper/80 placeholder-muted/30 outline-none font-body"
+                  />
+                  <button
+                    onClick={handleRefine}
+                    disabled={isRefining || !refineInput.trim()}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 disabled:opacity-30 transition-all duration-150"
+                    style={{ background: activeMode.color }}
+                  >
+                    {isRefining
+                      ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
+                      : <Send size={11} className="text-white" />}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1474,6 +1599,11 @@ export default function PilotApp() {
           </div>
         )}
       </div>
+
+      {/* PRODUCT CONTEXT */}
+      {showContext && (
+        <ProductContextPanel onClose={() => setShowContext(false)} />
+      )}
 
       {/* TEMPLATE GALLERY */}
       {showTemplates && (

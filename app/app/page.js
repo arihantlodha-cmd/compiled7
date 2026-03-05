@@ -6,7 +6,7 @@ import {
   Zap, FileText, Users, Map, CheckSquare,
   ChevronRight, Copy, Download, Clock, Trash2, X,
   Plus, MessageCircle, ArrowRight, History, Check,
-  LayoutGrid, Target, Trophy, Sparkles, Home,
+  LayoutGrid, Target, Trophy, Sparkles, Home, Share2,
 } from 'lucide-react'
 
 // ─── MODES ─────────────────────────────────────────────────────────────────
@@ -674,6 +674,7 @@ export default function PilotApp() {
   const [showHistory, setShowHistory] = useState(false)
   const [history, setHistory] = useState([])
   const [copied, setCopied] = useState(false)
+  const [shared, setShared] = useState(false)
 
   // Refine
   const [showRefine, setShowRefine] = useState(false)
@@ -964,6 +965,15 @@ export default function PilotApp() {
     navigator.clipboard.writeText(output)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleShare() {
+    const payload = JSON.stringify({ mode: activeMode.id, output })
+    const encoded = btoa(unescape(encodeURIComponent(payload)))
+    const url = `${window.location.origin}/share#${encoded}`
+    navigator.clipboard.writeText(url)
+    setShared(true)
+    setTimeout(() => setShared(false), 2500)
   }
 
   function handleDownloadMd() {
@@ -1269,10 +1279,15 @@ export default function PilotApp() {
               </div>
               {output && (
                 <div className="flex items-center gap-1.5">
+                  <button onClick={handleShare}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-muted text-xs font-body hover:text-paper hover:border-paper/20 transition-all duration-150">
+                    {shared ? <Check size={11} className="text-green-400" /> : <Share2 size={11} />}
+                    {shared ? 'Link copied!' : 'Share'}
+                  </button>
                   <button onClick={handleCopy}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-muted text-xs font-body hover:text-paper hover:border-paper/20 transition-all duration-150">
                     {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
-                    {copied ? 'Copied!' : 'Copy as Markdown'}
+                    {copied ? 'Copied!' : 'Copy'}
                   </button>
                   <div className="relative" ref={exportRef}>
                     <button onClick={() => setShowExport(p => !p)}

@@ -18,10 +18,11 @@ export async function POST(request) {
       )
     }
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openaiRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'HTTP-Referer': 'https://compiled7.vercel.app',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

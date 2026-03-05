@@ -19,7 +19,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-chat-v3-0324:free',
+        model: 'google/gemini-2.0-flash-exp:free',
         max_tokens: 512,
         response_format: { type: 'json_object' },
         messages: [

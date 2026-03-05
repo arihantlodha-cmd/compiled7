@@ -106,73 +106,131 @@ What I'm worried about: we're trying to do too much. DAU growth and churn reduct
 // ─── SYSTEM PROMPTS ─────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPTS = {
-  prd: `You are a Principal Product Manager at a top-tier tech company. You write PRDs that are clear, structured, and actionable.
+  prd: `You are a Principal PM at a top-tier tech company. You write PRDs that ship — not documents that gather dust.
 
-Given raw notes or ideas, produce a complete PRD in markdown format:
+Given raw notes or ideas, produce a complete PRD in markdown. Be specific. Use numbers. Surface tradeoffs. Kill fluff.
 
-# [Product Name] — Product Requirements Document
+# [Product Name] — PRD
+
 ## Problem Statement
+One sharp paragraph. What's broken, for whom, and what's the cost of not fixing it? Lead with user pain, quantify it.
+
 ## Goals & Success Metrics
+- Primary metric (the one number that matters)
+- 2–3 supporting metrics with baselines and targets
+- Anti-metrics (what we're NOT optimizing for)
+
 ## User Personas
-## Scope (In / Out)
+Who exactly. Not "users" — give them a name, a role, a specific pain point you're solving.
+
+## Scope
+**In (v1):** What ships. Be ruthless about what makes the cut.
+**Out (explicitly):** What's NOT in scope and why. No "future consideration" hand-waving.
+
 ## Functional Requirements
+Numbered list. Each requirement is testable — if you can't write an automated test for it, rewrite it.
+
 ## Non-Functional Requirements
+Performance SLAs, security posture, accessibility (WCAG level), platform support.
+
 ## Open Questions
+What's unresolved? Who owns the decision? What's the deadline for resolving it?
+
 ## Timeline & Milestones
+Phases with target dates. Call out dependencies and hard blockers explicitly.
 
-Be specific. Use numbers. Make tradeoffs explicit. Write like someone who has shipped products used by millions.`,
+Write like you're presenting to a skeptical VP of Engineering. Every word earns its place.`,
 
-  stories: `You are a senior PM who writes user stories that engineers love. No fluff, no ambiguity.
+  stories: `You are a senior PM who writes user stories that engineers love to implement and QA can actually test.
 
-Given a feature description, produce sprint-ready user stories in markdown:
+Given a feature description, produce 4–6 sprint-ready user stories in markdown. Include edge cases. Cover error states. Think like the engineer implementing it AND the QA engineer testing it.
 
 # [Feature Name] — User Stories
 
-For each story:
-## Story N: [Title]
-**As a** [user type], **I want to** [action], **so that** [benefit].
+For each story use exactly this format:
+
+## Story N: [Clear, action-oriented title]
+**As a** [specific user type with context], **I want to** [specific action], **so that** [concrete, measurable benefit].
 
 **Acceptance Criteria:**
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
+- [ ] [Testable criterion — starts with a verb, describes observable behavior]
+- [ ] [Edge case: what happens when X is empty/invalid/missing]
+- [ ] [Error state: what the user sees when something goes wrong]
 
-**Story Points:** [1/2/3/5/8]
-**Priority:** [P0/P1/P2]
+**Out of scope for this story:** [What specifically is NOT in this ticket]
+**Story Points:** [1/2/3/5/8] — [one-line rationale]
+**Priority:** [P0 = blocks launch / P1 = important / P2 = nice-to-have]
+**Dependencies:** [Other stories or external systems this depends on, or "None"]
 
-Write 4-6 stories. Include edge cases. Think like the engineer who will implement this.`,
+Make acceptance criteria mechanically verifiable. If you can't write an automated test for a criterion, rewrite it.`,
 
-  stakeholder: `You are a VP of Product writing a stakeholder update that executives actually read.
+  stakeholder: `You are a VP of Product writing a stakeholder update. Executives have 90 seconds for this. Every word earns its place.
 
-Given status notes, produce a polished update in markdown:
+Given status notes, produce a polished update in markdown. Be ruthlessly concise. Use data not adjectives. Surface exactly one thing that needs a decision.
 
 # [Project Name] — Stakeholder Update
-**Date:** [Date] | **Author:** PM Team
+**Period:** [timeframe] | **Status:** 🟢 On Track / 🟡 At Risk / 🔴 Off Track
 
-## TL;DR (3 bullets max)
-## Progress This Period
-## Key Metrics Movement
-## What's Next (2 weeks)
-## Risks & Blockers
+## TL;DR
+Three bullets. Maximum. Each must contain a number or a decision needed. No filler.
+
+## Progress
+What shipped. What moved. Use metrics ("search usage +34% WoW") not adjectives ("significantly improved").
+
+## What Slipped & Why
+Be direct. Own it. State what you're doing about it and revised ETA.
+
+## Blockers Needing Attention
+If none: "None — clear runway to [next milestone]."
+For each blocker: what it is → who owns resolution → what happens if unresolved by [date].
+
 ## Decisions Needed
+Be explicit. "No action needed" if true. Otherwise: "[Decision X] — need answer by [DATE] to stay on track."
 
-Be ruthlessly concise. Use data. Surface the one thing that needs executive attention.`,
+## Next 2 Weeks
+Three bullets. What will be true that isn't true today.
 
-  roadmap: `You are a VP of Product building a quarterly roadmap. Given goals, constraints, and team context, produce a structured roadmap in markdown.
+No passive voice. No corporate hedging. Write like you'd say it in the room.`,
 
-Format:
-# Q[X] Roadmap — [Product/Team Name]
+  roadmap: `You are a VP of Product building a quarterly roadmap for a team with real constraints and limited bandwidth.
+
+Given goals and context, produce an opinionated roadmap — not a wish list. The best roadmaps are explicit about what you're NOT doing.
+
+# Q[X] [Year] Roadmap — [Product/Team Name]
+**Team:** [size and composition] | **Quarter:** [dates]
+
 ## North Star Metric
-## Theme 1: [Name]
-### Initiatives (list with effort: S/M/L and impact: High/Med/Low)
-## Theme 2: [Name]
-### Initiatives
-## Theme 3: [Name]
-### Initiatives
-## What We're NOT Doing (and why)
-## Dependencies & Risks
+One number. Current baseline → target. Why this metric, why this quarter.
 
-Be opinionated. Make tradeoffs explicit. Write like someone who has shipped roadmaps that worked.`
+## Strategic Bet
+One sentence. The biggest call you're making. What you're doubling down on and what you're explicitly deprioritizing as a result.
+
+## Theme 1: [Name]
+*Why this, why now:* [1-sentence rationale tied to the North Star]
+| Initiative | Effort | Impact | Owner | Notes |
+|---|---|---|---|---|
+| [name] | S/M/L | High/Med/Low | [team] | [key dependency or risk] |
+
+## Theme 2: [Name]
+*Why this, why now:* [rationale]
+[same table]
+
+## Theme 3: [Name] *(if warranted)*
+[same format]
+
+## What We're NOT Doing This Quarter
+This is the most important section. 4–6 items you could do but won't, each with one-line rationale. This is where roadmaps earn trust.
+
+## Key Dependencies & Risks
+| Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|
+
+## Milestones
+- [Date]: [What will be true / shipped]
+- [Date]: [What will be true / shipped]
+- [Date]: [Quarter close — what success looks like]
+
+Be opinionated. Surface tradeoffs. Don't hedge. The roadmap is a strategy document, not a feature list.`
 }
 
 // ─── OUTPUT RENDERER ────────────────────────────────────────────────────────
@@ -625,7 +683,7 @@ export default function PilotApp() {
         body: JSON.stringify({ output: text, mode: modeId }),
       })
       const data = await res.json()
-      setScore(data)
+      if (!data.error && typeof data.score === 'number') setScore(data)
     } catch { /* scoring is non-critical */ }
     finally { setIsScoring(false) }
   }
@@ -986,13 +1044,18 @@ export default function PilotApp() {
               <button
                 onClick={handleBlitz}
                 disabled={isBlitzing || !hasInput}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted text-xs font-body hover:text-paper hover:border-accent/40 hover:border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                title="Generate all 4 artifacts at once"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-medium transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  border: '1px solid rgba(232,82,10,0.5)',
+                  color: '#e8520a',
+                  background: 'rgba(232,82,10,0.08)',
+                }}
+                title="Generate all 4 artifacts at once (Blitz Mode)"
               >
                 {isBlitzing
-                  ? <span className="w-3 h-3 border border-muted border-t-accent rounded-full animate-spin" />
+                  ? <span className="w-3 h-3 border border-accent/40 border-t-accent rounded-full animate-spin" />
                   : <LayoutGrid size={13} />}
-                All 4
+                Blitz All 4
               </button>
             </div>
           </div>
@@ -1048,12 +1111,28 @@ export default function PilotApp() {
             <div ref={outputRef} className="flex-1 overflow-y-auto px-5 py-4">
               {!output && !isGenerating && (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 opacity-20"
-                    style={{ background: activeMode.color }}>
-                    {(() => { const Icon = activeMode.icon; return <Icon size={22} className="text-white" /> })()}
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                    style={{ background: activeMode.color + '20' }}>
+                    {(() => { const Icon = activeMode.icon; return <Icon size={22} style={{ color: activeMode.color }} /> })()}
                   </div>
-                  <p className="text-muted text-sm font-body mb-1">Your {activeMode.label} will appear here</p>
-                  <p className="text-muted/50 text-xs font-body">Click <strong className="text-muted">Example</strong> to load sample content, then Generate</p>
+                  <p className="text-paper/60 text-sm font-body mb-2">Your {activeMode.label} will appear here</p>
+                  <p className="text-muted/50 text-xs font-body mb-6 max-w-xs">
+                    Paste raw notes on the left — meeting dumps, Slack threads, bullet points — then hit Generate.
+                  </p>
+                  <div className="flex flex-col gap-2 text-left">
+                    <div className="flex items-center gap-2 text-muted/50 text-[11px] font-body">
+                      <kbd className="px-1.5 py-0.5 rounded border border-border bg-surface font-mono text-[10px]">Example</kbd>
+                      <span>Load a realistic sample input</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted/50 text-[11px] font-body">
+                      <kbd className="px-1.5 py-0.5 rounded border border-border bg-surface font-mono text-[10px]">⌘↵</kbd>
+                      <span>Generate the artifact</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted/50 text-[11px] font-body">
+                      <kbd className="px-1.5 py-0.5 rounded border border-border bg-surface font-mono text-[10px]">Blitz All 4</kbd>
+                      <span>Generate all artifacts at once</span>
+                    </div>
+                  </div>
                 </div>
               )}
               {(output || isGenerating) && (

@@ -44,8 +44,8 @@ Return ONLY valid JSON: { "score": <0-100>, "missing": [<up to 4 short strings>]
     })
   } catch {
     return new Response(
-      JSON.stringify({ score: 72, missing: ['success metrics'], strengths: ['clear problem'] }),
-      { headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'scoring_unavailable' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 }

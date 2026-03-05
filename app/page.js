@@ -191,6 +191,12 @@ export default function Landing() {
         </div>
         <div className="flex items-center gap-3">
           <a
+            href="#pricing"
+            className="hidden sm:block text-muted text-xs font-body hover:text-paper transition-colors duration-150"
+          >
+            Pricing
+          </a>
+          <a
             href="https://www.ycombinator.com/rfs"
             target="_blank"
             rel="noopener noreferrer"
@@ -466,6 +472,117 @@ export default function Landing() {
                 </div>
               </FadeUp>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="py-24 px-6 border-t border-border" id="pricing">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <p className="text-muted text-xs font-body uppercase tracking-widest text-center mb-4">Pricing</p>
+            <h2 className="font-display text-4xl md:text-5xl text-paper text-center mb-4">
+              Simple, transparent pricing.
+            </h2>
+            <p className="text-muted text-center text-base font-body max-w-lg mx-auto mb-14">
+              Start free. Upgrade when your team needs more.
+            </p>
+          </FadeUp>
+          <div className="grid md:grid-cols-3 gap-4 items-start">
+            {/* Free */}
+            <FadeUp delay={0}>
+              <div className="rounded-2xl border border-border bg-surface/30 p-7">
+                <div className="mb-6">
+                  <p className="text-muted text-xs font-body uppercase tracking-widest mb-2">Free</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-4xl text-paper">$0</span>
+                    <span className="text-muted text-sm font-body">forever</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    '10 generations / day',
+                    'All 4 artifact types',
+                    'Smart Ask',
+                    'Blitz Mode',
+                    'Local history (20 items)',
+                    'Markdown export',
+                  ].map((f, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-sm font-body text-paper/70">
+                      <span className="text-muted">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/app" className="block text-center px-4 py-2.5 rounded-lg border border-border text-muted text-sm font-body hover:text-paper hover:border-paper/20 transition-all duration-150">
+                  Start free →
+                </Link>
+              </div>
+            </FadeUp>
+
+            {/* Pro */}
+            <FadeUp delay={80}>
+              <div className="rounded-2xl p-7 relative" style={{ border: '1px solid rgba(232,82,10,0.4)', background: 'rgba(232,82,10,0.04)' }}>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-medium font-body text-white" style={{ background: '#e8520a' }}>Most Popular</span>
+                </div>
+                <div className="mb-6">
+                  <p className="text-xs font-body uppercase tracking-widest mb-2" style={{ color: '#e8520a' }}>Pro</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-4xl text-paper">$19</span>
+                    <span className="text-muted text-sm font-body">/ month</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    'Unlimited generations',
+                    'All 4 artifact types',
+                    'Smart Ask + Blitz Mode',
+                    'Unlimited history + sync',
+                    'Priority API (faster)',
+                    'PM Score analytics',
+                    'Notion / Linear export',
+                  ].map((f, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-sm font-body text-paper/80">
+                      <span style={{ color: '#e8520a' }}>✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/app" className="block text-center px-4 py-2.5 rounded-lg text-white text-sm font-medium font-body hover:opacity-90 transition-all duration-150 glow-accent" style={{ background: '#e8520a' }}>
+                  Get Pro →
+                </Link>
+              </div>
+            </FadeUp>
+
+            {/* Team */}
+            <FadeUp delay={160}>
+              <div className="rounded-2xl border border-border bg-surface/30 p-7">
+                <div className="mb-6">
+                  <p className="text-muted text-xs font-body uppercase tracking-widest mb-2">Team</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-4xl text-paper">$49</span>
+                    <span className="text-muted text-sm font-body">/ seat / mo</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    'Everything in Pro',
+                    'Team workspace & sharing',
+                    'Jira / Linear integration',
+                    'SSO (Google, Okta)',
+                    'Admin dashboard',
+                    'Priority support',
+                    'Custom system prompts',
+                  ].map((f, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-sm font-body text-paper/70">
+                      <span className="text-muted">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/app" className="block text-center px-4 py-2.5 rounded-lg border border-border text-muted text-sm font-body hover:text-paper hover:border-paper/20 transition-all duration-150">
+                  Talk to us →
+                </Link>
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>

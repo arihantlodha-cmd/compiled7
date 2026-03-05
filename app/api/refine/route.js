@@ -23,7 +23,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o',
+        model: 'openai/gpt-oss-120b:free',
         max_tokens: 4096,
         stream: true,
         messages: [

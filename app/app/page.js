@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import {
   Zap, FileText, Users, Map, CheckSquare,
   ChevronRight, Copy, Download, Clock, Trash2, X,
   Plus, MessageCircle, ArrowRight, History, Check,
-  LayoutGrid, Target, Trophy, Sparkles,
+  LayoutGrid, Target, Trophy, Sparkles, Home,
 } from 'lucide-react'
 
 // ─── MODES ─────────────────────────────────────────────────────────────────
@@ -870,6 +871,13 @@ export default function PilotApp() {
           <span className="text-muted text-xs ml-1 font-body">AI Copilot for PMs</span>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="w-7 h-7 rounded-lg border border-border text-muted hover:text-paper hover:border-paper/20 transition-all duration-150 flex items-center justify-center"
+            title="Back to home"
+          >
+            <Home size={13} />
+          </Link>
           <button
             onClick={() => setShowShortcuts(true)}
             className="w-7 h-7 rounded-lg border border-border text-muted hover:text-paper hover:border-paper/20 transition-all duration-150 flex items-center justify-center text-xs font-mono"

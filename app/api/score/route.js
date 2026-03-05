@@ -19,7 +19,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        model: 'deepseek/deepseek-chat-v3-0324:free',
         max_tokens: 256,
         response_format: { type: 'json_object' },
         messages: [

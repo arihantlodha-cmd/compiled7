@@ -571,6 +571,10 @@ export default function PilotApp() {
   const [score, setScore] = useState(null)
   const [isScoring, setIsScoring] = useState(false)
 
+  // Generation timer
+  const [genTime, setGenTime] = useState(null)
+  const genStartRef = useRef(null)
+
   // Blitz mode
   const [showBlitz, setShowBlitz] = useState(false)
   const [blitzOutputs, setBlitzOutputs] = useState({ prd: '', stories: '', stakeholder: '', roadmap: '' })
@@ -579,7 +583,15 @@ export default function PilotApp() {
 
   const outputRef = useRef(null)
 
-  useEffect(() => { setHistory(loadHistory()) }, [])
+  useEffect(() => {
+    setHistory(loadHistory())
+    // Auto-load example on first visit
+    const seen = localStorage.getItem('pilot_seen')
+    if (!seen) {
+      setDocs([{ id: 1, label: 'Primary Input', content: EXAMPLES['prd'] }])
+      localStorage.setItem('pilot_seen', '1')
+    }
+  }, [])
 
   // Close export on outside click
   useEffect(() => {
@@ -648,9 +660,11 @@ export default function PilotApp() {
 
     setOutput('')
     setScore(null)
+    setGenTime(null)
     setIsGenerating(true)
     setShowRefine(false)
     setRefineInput('')
+    genStartRef.current = Date.now()
 
     let fullOutput = ''
     try {
@@ -661,6 +675,9 @@ export default function PilotApp() {
         onChunk: (text) => setOutput(text),
         onDone: (text) => setOutput(text),
       })
+
+      const elapsed = ((Date.now() - genStartRef.current) / 1000).toFixed(1)
+      setGenTime(elapsed)
 
       const item = {
         id: Date.now(), mode: activeMode.label, modeId: activeMode.id,
@@ -674,7 +691,7 @@ export default function PilotApp() {
       // Auto-score after generation
       scoreOutput(fullOutput, activeMode.id)
     } catch (err) {
-      setOutput(`**Generation failed**\n\n${err.message}\n\nCheck your API key and try again.`)
+      setOutput(`__error__${err.message}`)
     } finally {
       setIsGenerating(false)
     }
@@ -1087,6 +1104,14 @@ export default function PilotApp() {
                     {activeMode.label}
                   </span>
                 )}
+                {output && !isGenerating && genTime && (
+                  <span className="text-muted text-[10px] font-mono">⚡ {genTime}s</span>
+                )}
+                {output && !isGenerating && (
+                  <span className="text-muted/50 text-[10px] font-body">
+                    {output.split(/\s+/).filter(Boolean).length} words
+                  </span>
+                )}
                 {isScoring && (
                   <span className="flex items-center gap-1 text-muted text-[10px] font-body">
                     <span className="w-2 h-2 border border-muted/40 border-t-muted rounded-full animate-spin" />
@@ -1153,9 +1178,25 @@ export default function PilotApp() {
               )}
               {(output || isGenerating) && (
                 <div className="animate-fade-up">
-                  <OutputRenderer content={output} color={activeMode.color} />
-                  {isGenerating && (
-                    <span className="inline-block w-0.5 h-4 ml-0.5 animate-pulse rounded-full" style={{ background: activeMode.color }} />
+                  {output.startsWith('__error__') ? (
+                    <div className="rounded-xl border border-red-500/20 bg-red-500/05 p-5">
+                      <p className="text-red-400 text-sm font-body font-medium mb-1">Generation failed</p>
+                      <p className="text-muted text-xs font-body">The AI service returned an error. Try again in a moment.</p>
+                      <button
+                        onClick={handleGenerate}
+                        className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body font-medium text-white transition-all duration-150"
+                        style={{ background: activeMode.color }}
+                      >
+                        <Zap size={11} /> Retry
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <OutputRenderer content={output} color={activeMode.color} />
+                      {isGenerating && (
+                        <span className="inline-block w-0.5 h-4 ml-0.5 animate-pulse rounded-full" style={{ background: activeMode.color }} />
+                      )}
+                    </>
                   )}
                 </div>
               )}
